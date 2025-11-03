@@ -31,55 +31,98 @@
       width: 100%;
     }
 
-    /* Popup form styling */
-    .form-popup {
-      position: absolute;
-      display: none;
-      background: rgba(255, 255, 255, 0.98);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-      width: 90%;
-      max-width: 320px;
-      animation: fadeIn 0.3s ease-in-out;
-      z-index: 10;
-    }
+/* 🌍 Form Popup Styling */
+.form-popup {
+  position: absolute;
+  display: none;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  max-width: 360px;
+  animation: fadeIn 0.3s ease-in-out;
+  z-index: 10;
+}
 
-    .form-popup h3 {
-      margin: 0 0 10px;
-      text-align: center;
-      font-weight: 600;
-    }
+.form-popup h3 {
+  margin-top: 0;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
 
-    .form-popup input,
-    .form-popup textarea,
-    .form-popup select,
-    .form-popup button {
-      width: 100%;
-      margin-top: 8px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 0.9em;
-    }
+.form-popup textarea {
+  width: 100%;
+  resize: none;
+  min-height: 80px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.95em;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+  transition: 0.3s;
+}
 
-    .form-popup button {
-      background-color: #0078ff;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+.form-popup textarea:focus {
+  border-color: #0078ff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 120, 255, 0.4);
+}
 
-    .form-popup button:hover {
-      background-color: #005fcc;
-    }
+.form-popup select,
+.form-popup input {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.9em;
+  font-family: 'Poppins', sans-serif;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+.form-popup button {
+  width: 48%;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: 0.3s;
+  border: none;
+}
+
+#submitStory {
+  background-color: #0078ff;
+  color: white;
+}
+
+#submitStory:hover {
+  background-color: #005fcc;
+}
+
+#cancelStory {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+#cancelStory:hover {
+  background-color: #ccc;
+}
+
+.form-popup .btn-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
   </style>
 </head>
 
@@ -174,4 +217,5 @@
   </script>
 </body>
 </html>
+
 
