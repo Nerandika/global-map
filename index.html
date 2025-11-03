@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Stories of the World</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Mapbox -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet" />
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Attractive Story Form -->
+  <div id="storyForm" style="
+    display:none;
+    position:absolute;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    z-index:10;
+    width: 280px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    opacity: 0;
+    transform: scale(0.8);
+  ">
+    <h3 style="margin-top:0; color:#333; text-align:center;">Share Your Story 🌍</h3>
+    <textarea id="storyInput" rows="4" cols="30" placeholder="Write your story here..." style="
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: none;
+      font-family: inherit;
+    "></textarea>
+
+    <label style="margin-top:10px; display:block; color:#555;">Emotion:</label>
+    <select id="emotionSelect" style="
+      width: 100%;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    ">
+      <option value="happy">😊 Happy</option>
+      <option value="sad">😢 Sad</option>
+      <option value="nostalgic">🌅 Nostalgic</option>
+      <option value="excited">🔥 Excited</option>
+    </select>
+
+    <label style="color:#555;">Image URL (optional):</label>
+    <input type="text" id="imageURL" placeholder="https://example.com/image.jpg" style="
+      width: 100%;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 15px;
+      font-family: inherit;
+    ">
+
+    <div style="display:flex; justify-content: space-between;">
+      <button id="submitStory" style="
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s ease;
+      " onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">Submit</button>
+
+      <button id="cancelStory" style="
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s ease;
+      " onmouseover="this.style.backgroundColor='#e53935'" onmouseout="this.style.backgroundColor='#f44336'">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Mapbox ---
+    mapboxgl.accessToken = 'pk.eyJ1IjoibmVyYW5kaWthIiwiYSI6ImNtaGlzNWNmMDB1c24ya3F2MWpxcHQ4Z3IifQ.AjxQuDJihKxLW-YZLwAOCg';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [0, 20],
+      zoom: 1.5
+    });
+
+    // --- Firebase ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJTdO2BHQmau6WMjqBrQ6TPALo6J3JRxQ",
+      authDomain: "global-map-64363.firebaseapp.com",
+      databaseURL: "https://global-map-64363-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "global-map-64363",
+      storageBucket: "global-map-64363.appspot.com",
+      messagingSenderId: "1020947953105",
+      appId: "1:1020947953105:web:47ca8248b61f0a9d161cf0",
+      measurementId: "G-KJ6RTWCHC2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // --- Load existing markers ---
+    firebase.database().ref('stories').once('value', snapshot => {
+      snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        let emoji, color;
+        switch(data.emotion) {
+          case 'happy': emoji='😊'; color='yellow'; break;
+          case 'sad': emoji='😢'; color='blue'; break;
+          case 'nostalgic': emoji='🌅'; color='orange'; break;
+          case 'excited': emoji='🔥'; color='red'; break;
+          default: emoji=''; color='gray';
+        }
+
+        let popupContent = `<strong>${emoji} ${data.emotion.toUpperCase()}</strong><br>${data.story}`;
+        if(data.image){
+          popupContent += `<br><img src="${data.image}" alt="image" style="width:100%; margin-top:5px; border-radius:4px;">`;
+        }
+
+        new mapboxgl.Marker({ color: color })
+          .setLngLat([data.lng, data.lat])
+          .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent))
+          .addTo(map);
+      });
+    });
+
+    // --- Click map to add marker ---
+    map.on('click', function(e) {
+      const coords = e.lngLat;
+
+      const form = document.getElementById('storyForm');
+      form.style.display = 'block';
+      form.style.left = e.point.x + 'px';
+      form.style.top = e.point.y + 'px';
+
+      // Animate appearance
+      setTimeout(() => {
+        form.style.opacity = 1;
+        form.style.transform = 'scale(1)';
+      }, 10);
+
+      // Clear inputs
+      document.getElementById('storyInput').value = '';
+      document.getElementById('emotionSelect').value = 'happy';
+      document.getElementById('imageURL').value = '';
+
+      // Submit
+      document.getElementById('submitStory').onclick = function() {
+        const story = document.getElementById('storyInput').value;
+        const emotion = document.getElementById('emotionSelect').value;
+        const image = document.getElementById('imageURL').value;
+
+        if(story){
+          let emoji, color;
+          switch(emotion){
+            case 'happy': emoji='😊'; color='yellow'; break;
+            case 'sad': emoji='😢'; color='blue'; break;
+            case 'nostalgic': emoji='🌅'; color='orange'; break;
+            case 'excited': emoji='🔥'; color='red'; break;
+            default: emoji=''; color='gray';
+          }
+
+          let popupContent = `<strong>${emoji} ${emotion.toUpperCase()}</strong><br>${story}`;
+          if(image){
+            popupContent += `<br><img src="${image}" alt="image" style="width:100%; margin-top:5px; border-radius:4px;">`;
+          }
+
+          const marker = new mapboxgl.Marker({ color: color })
+            .setLngLat([coords.lng, coords.lat])
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent))
+            .addTo(map);
+          marker.togglePopup();
+
+          // Save to Firebase
+          firebase.database().ref('stories').push({
+            lat: coords.lat,
+            lng: coords.lng,
+            story: story,
+            emotion: emotion,
+            image: image
+          });
+        }
+
+        // Animate hide
+        form.style.opacity = 0;
+        form.style.transform = 'scale(0.8)';
+        setTimeout(() => { form.style.display = 'none'; }, 200);
+      };
+
+      // Cancel
+      document.getElementById('cancelStory').onclick = function(){
+        form.style.opacity = 0;
+        form.style.transform = 'scale(0.8)';
+        setTimeout(() => { form.style.display = 'none'; }, 200);
+      };
+    });
+  </script>
+</body>
+</html>
